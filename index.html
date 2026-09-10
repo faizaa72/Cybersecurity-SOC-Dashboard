@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENTINEL // SOC-9 THREAT MONITOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="crt-overlay" aria-hidden="true"></div>
+
+<div class="boot-screen" id="bootScreen" aria-hidden="true">
+  <pre id="bootText"></pre>
+</div>
+
+<div class="app" id="app">
+
+  <!-- ================= HEADER ================= -->
+  <header class="topbar">
+    <div class="topbar__brand">
+      <pre class="ascii-logo" aria-hidden="true">
+ ██████╗ ██████╗  ██████╗    █████╗
+██╔════╝██╔═══██╗██╔════╝   ██╔══██╗
+╚█████╗ ██║   ██║██║        ╚██████║
+ ╚═══██╗██║   ██║██║         ╚═══██║
+██████╔╝╚██████╔╝╚██████╗    █████╔╝
+╚═════╝  ╚═════╝  ╚═════╝    ╚════╝ </pre>
+      <div class="topbar__title">
+        <span class="topbar__title-main">SENTINEL</span>
+        <span class="topbar__title-sub">// SECURITY OPERATIONS CENTER — MAINFRAME 9</span>
+      </div>
+    </div>
+
+    <div class="topbar__status" id="topbarStatus">
+      <div class="status-chip status-chip--ok" id="chipUplink">
+        <span class="status-chip__dot"></span>UPLINK <b>NOMINAL</b>
+      </div>
+      <div class="status-chip" id="chipAnalyst">
+        <span class="status-chip__dot status-chip__dot--amber"></span>ANALYST <b>J.OKONKWO</b>
+      </div>
+      <div class="status-chip" id="clockChip">
+        <span class="status-chip__dot status-chip__dot--dim"></span><b id="clockTime">00:00:00</b> UTC
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= COMMAND BAR ================= -->
+  <div class="cmdbar">
+    <span class="cmdbar__prompt">root@soc-mainframe:~$</span>
+    <span class="cmdbar__cmd" id="cmdText"></span><span class="cursor-block" id="cmdCursor">█</span>
+    <div class="cmdbar__hints">
+      <span>[1‑4] filter severity</span>
+      <span>[/] search</span>
+      <span>[a] ack selected</span>
+      <span>[esc] clear</span>
+    </div>
+  </div>
+
+  <!-- ================= MAIN GRID ================= -->
+  <main class="grid">
+
+    <!-- ---- PANE: ALERT QUEUE ---- -->
+    <section class="pane pane--alerts" aria-labelledby="alertsTitle">
+      <div class="pane__titlebar">
+        <span>+--- ALERT QUEUE ---------------------------------------+</span>
+      </div>
+      <div class="pane__inner">
+        <div class="pane__row pane__row--tools">
+          <h2 id="alertsTitle" class="visually-hidden">Alert queue</h2>
+          <div class="sev-filters" id="sevFilters" role="group" aria-label="Filter by severity">
+            <button class="sev-btn sev-btn--crit is-active" data-sev="critical">[1] CRIT <span id="countCrit">0</span></button>
+            <button class="sev-btn sev-btn--high" data-sev="high">[2] HIGH <span id="countHigh">0</span></button>
+            <button class="sev-btn sev-btn--med" data-sev="medium">[3] MED <span id="countMed">0</span></button>
+            <button class="sev-btn sev-btn--low" data-sev="low">[4] LOW <span id="countLow">0</span></button>
+          </div>
+          <label class="search">
+            <span>/</span>
+            <input type="text" id="alertSearch" placeholder="grep alerts..." aria-label="Search alerts">
+          </label>
+        </div>
+
+        <div class="table-head">
+          <span class="col col--sev">SEV</span>
+          <span class="col col--time">TIME</span>
+          <span class="col col--type">EVENT</span>
+          <span class="col col--src">SOURCE</span>
+          <span class="col col--tgt">TARGET</span>
+          <span class="col col--status">STATUS</span>
+          <span class="col col--action">ACTION</span>
+        </div>
+
+        <ul class="alert-list" id="alertList" role="list" tabindex="0" aria-label="Live alert list"></ul>
+
+        <div class="pane__footer-note">
+          <span id="alertCountNote">0 open · 0 acknowledged</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- PANE: THREAT LEVEL ---- -->
+    <section class="pane pane--threat" aria-labelledby="threatTitle">
+      <div class="pane__titlebar">
+        <span>+--- THREAT LEVEL --------+</span>
+      </div>
+      <div class="pane__inner pane__inner--pad">
+        <h2 id="threatTitle" class="visually-hidden">Threat level</h2>
+
+        <div class="threat-score">
+          <span class="threat-score__label">GLOBAL RISK SCORE</span>
+          <span class="threat-score__value" id="threatValue">00</span>
+          <span class="threat-score__max">/100</span>
+        </div>
+        <div class="ascii-bar" aria-hidden="true"><span id="threatBar">[..................]</span></div>
+        <div class="threat-verdict" id="threatVerdict">CALCULATING…</div>
+
+        <div class="stat-row">
+          <div class="stat-block">
+            <span class="stat-block__label">INCIDENTS TODAY</span>
+            <span class="stat-block__value" id="statIncidents">0</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-block__label">BLOCKED / HR</span>
+            <span class="stat-block__value" id="statBlocked">0</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-block__label">AVG MTTR</span>
+            <span class="stat-block__value" id="statMttr">--m</span>
+          </div>
+        </div>
+
+        <div class="mini-meters">
+          <div class="meter">
+            <span class="meter__label">NETWORK ANOMALY</span>
+            <div class="ascii-bar ascii-bar--sm"><span id="meterNetwork">[..........]</span></div>
+          </div>
+          <div class="meter">
+            <span class="meter__label">AUTH FAILURES</span>
+            <div class="ascii-bar ascii-bar--sm"><span id="meterAuth">[..........]</span></div>
+          </div>
+          <div class="meter">
+            <span class="meter__label">EGRESS VOLUME</span>
+            <div class="ascii-bar ascii-bar--sm"><span id="meterEgress">[..........]</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- PANE: ATTACK TIMELINE ---- -->
+    <section class="pane pane--timeline" aria-labelledby="timelineTitle">
+      <div class="pane__titlebar">
+        <span>+--- ATTACK TIMELINE ------------------------------------+</span>
+      </div>
+      <div class="pane__inner">
+        <h2 id="timelineTitle" class="visually-hidden">Attack timeline</h2>
+        <ol class="timeline" id="timeline" aria-live="polite"></ol>
+      </div>
+    </section>
+
+    <!-- ---- PANE: SYSTEM STATUS ---- -->
+    <section class="pane pane--systems" aria-labelledby="systemsTitle">
+      <div class="pane__titlebar">
+        <span>+--- SYSTEM STATUS -------+</span>
+      </div>
+      <div class="pane__inner pane__inner--pad">
+        <h2 id="systemsTitle" class="visually-hidden">System status</h2>
+        <ul class="service-list" id="serviceList"></ul>
+
+        <div class="divider" aria-hidden="true">// PERIMETER NODES ------------</div>
+
+        <ul class="node-list" id="nodeList"></ul>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <span>SENTINEL v3.4.1</span>
+    <span class="footer__sep">//</span>
+    <span id="footerFeed">tail -f /var/log/sentinel/ids.log</span>
+    <span class="cursor-underscore">_</span>
+    <span class="footer__right">SESSION 00:00:00 <span class="footer__sep">//</span> <span id="footerConn">CONN: SECURE (TLS 1.3)</span></span>
+  </footer>
+
+</div>
+
+<div class="sr-live" id="srLive" aria-live="assertive" role="status"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
