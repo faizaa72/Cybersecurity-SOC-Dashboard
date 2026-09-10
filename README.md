@@ -30,33 +30,3 @@ The screen is split into four panes, like `tmux`/`vim` windows:
 | **System Status** (bottom-right) | Internal service health + perimeter node status |
 
 A boot sequence plays once on load; a command bar above the grid types out sample `sentinel-cli` / `nmap` commands on a loop for atmosphere.
-
-## UX challenges addressed
-
-**Alert prioritization**
-- Alerts auto-sort by severity (`critical → high → medium → low`), then recency.
-- Filter buttons (or number keys `1`–`4`) isolate a severity tier; counts update live.
-- `/` focuses a search box that matches event type, source, or target.
-- One-click / one-key (`a`) acknowledgment moves an alert out of the active queue without deleting the record.
-
-**Attack timelines**
-- Every alert also lands in a continuous timeline, so an analyst can reconstruct "what happened when" independent of the triage queue above.
-- Severity-coded markers keep critical events visually distinct in the scroll.
-
-**High-pressure usability**
-- A single Global Risk Score (0–100) with a plain-language verdict (`STABLE` / `ELEVATED` / `CRITICAL`) — no chart-reading required under stress.
-- Full keyboard control (`1`–`4` filter, `/` search, `a` acknowledge, `Esc` reset) so hands never have to leave the keyboard mid-incident.
-- New incidents arrive automatically every ~6–15 seconds and are announced via `aria-live` for screen reader users, so nothing has to be polled manually.
-- High-contrast green-on-black palette exceeds WCAG AA; focus states are always visible; motion respects `prefers-reduced-motion`.
-
-## Wiring in real data
-
-All state lives in `script.js`. To connect a real feed:
-
-- Replace `seedAlerts()` / `injectNewAlert()` with your API/WebSocket source, keeping the same alert shape: `{ id, sev, type, src, tgt, time, status, ack }`.
-- `SERVICES` and `NODES` arrays drive the System Status pane — swap in a real health-check response.
-- `computeThreatScore()` currently derives risk from open alert severity counts; replace with your own scoring model if you have one.
-
-## Responsive behavior
-
-Below 980px, the four panes stack vertically and the alert table collapses into labeled rows instead of columns, per the design system's mobile guidance.
